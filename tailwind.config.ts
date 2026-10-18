@@ -9,19 +9,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#1A1A2E",
-        surface: "#FAFAF7",
+        ink: "#1C1427",
+        surface: "#FAF8FF",
         primary: {
-          DEFAULT: "#2D6A4F",
-          light: "#B7E4C7",
-          dark: "#1B4332",
+          DEFAULT: "#7C3AED",
+          light: "#C4B5FD",
+          dark: "#4C1D95",
         },
-        accent: "#E5A220",
+        accent: "#7C3AED",
         muted: "#6B7280",
         whatsapp: "#25D366",
+        "rumi-soft": "#EDE9FE",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ['"Plus Jakarta Sans"', "system-ui", "sans-serif"],
       },
       maxWidth: {
         content: "1024px",

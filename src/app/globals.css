@@ -2,15 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 
 :root {
-  --ink: #1A1A2E;
-  --surface: #FAFAF7;
-  --primary: #2D6A4F;
-  --primary-light: #B7E4C7;
-  --primary-dark: #1B4332;
-  --accent: #E5A220;
+  --ink: #1C1427;
+  --surface: #FAF8FF;
+  --primary: #7C3AED;
+  --primary-light: #C4B5FD;
+  --primary-dark: #4C1D95;
+  --accent: #7C3AED;
   --muted: #6B7280;
   --whatsapp: #25D366;
 }
@@ -18,7 +18,7 @@
 body {
   color: var(--ink);
   background: var(--surface);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 

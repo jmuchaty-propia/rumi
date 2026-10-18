@@ -89,7 +89,7 @@ export default function Home() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-lg max-w-sm mx-auto">
+      <div className="flex gap-1 bg-rumi-soft p-1 rounded-lg max-w-sm mx-auto">
         <button
           onClick={() => setTab("habitaciones")}
           className={`flex-1 text-sm font-medium py-2 rounded-md transition-colors ${

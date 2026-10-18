@@ -10,8 +10,14 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-surface/95 backdrop-blur border-b border-gray-100">
       <div className="max-w-content mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/" className="text-xl font-bold text-primary tracking-tight">
-          rumi
+        <Link href="/" className="flex items-center gap-2">
+          <svg width="28" height="28" viewBox="0 0 72 72" fill="none" aria-hidden="true">
+            <rect x="4" y="4" width="64" height="64" rx="16" fill="#7C3AED"/>
+            <rect x="18" y="20" width="16" height="32" rx="4" fill="#FAF8FF"/>
+            <rect x="38" y="20" width="16" height="20" rx="4" fill="#C4B5FD"/>
+            <circle cx="30" cy="40" r="2.5" fill="#7C3AED"/>
+          </svg>
+          <span className="text-xl font-extrabold text-ink tracking-tight">rumi</span>
         </Link>
 
         {/* Desktop */}
