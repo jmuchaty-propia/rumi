@@ -9,17 +9,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#1C1427",
-        surface: "#FAF8FF",
+        ink: "#0F172A",
+        surface: "#FAFEFF",
         primary: {
-          DEFAULT: "#7C3AED",
-          light: "#C4B5FD",
-          dark: "#4C1D95",
+          DEFAULT: "#0284C7",
+          light: "#BAE6FD",
+          dark: "#075985",
         },
-        accent: "#7C3AED",
-        muted: "#6B7280",
+        accent: "#0284C7",
+        muted: "#64748B",
         whatsapp: "#25D366",
-        "rumi-soft": "#EDE9FE",
+        "rumi-soft": "#F0F9FF",
       },
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', "system-ui", "sans-serif"],

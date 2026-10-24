@@ -59,6 +59,8 @@ export default function PublicarPage() {
         gender_pref: form.gender_pref as "cualquiera" | "solo_mujeres" | "solo_hombres",
         available_from: null,
         photos: photoUrls,
+        latitude: null,
+        longitude: null,
       });
       setSubmitted(true);
     } catch {

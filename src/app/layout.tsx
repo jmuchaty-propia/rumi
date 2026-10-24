@@ -15,6 +15,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          crossOrigin=""
+        />
+        <script
+          src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          crossOrigin=""
+          defer
+        ></script>
+      </head>
       <body className="antialiased min-h-screen">
         <Navbar />
         <main>{children}</main>

@@ -6,6 +6,8 @@ export interface Room {
   currency: "USD" | "VES";
   location_city: string;
   location_zone: string;
+  latitude: number | null;
+  longitude: number | null;
   room_type: "privada" | "compartida";
   gender_pref: "cualquiera" | "solo_mujeres" | "solo_hombres";
   available_from: string | null;

@@ -7,7 +7,8 @@ import { SeekerCard } from "@/components/seeker-card";
 import { FilterBar } from "@/components/filter-bar";
 import { getRooms, getSeekers } from "@/lib/queries";
 import { Room, SeekerProfile, Tab } from "@/lib/types";
-import { Search, Plus, UserPlus } from "lucide-react";
+import { Search, Plus, UserPlus, MapPin } from "lucide-react";
+import { RoomMap } from "@/components/room-map";
 
 export default function Home() {
   const [tab, setTab] = useState<Tab>("habitaciones");
@@ -25,6 +26,7 @@ export default function Home() {
   const [seekers, setSeekers] = useState<SeekerProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
     // /habitaciones and /buscando redirect here with ?tab=
@@ -78,14 +80,28 @@ export default function Home() {
   return (
     <div className="max-w-content mx-auto px-4 py-6 space-y-6">
       {/* Hero */}
-      <div className="text-center space-y-2 py-6">
+      <div className="text-center space-y-3 py-8">
         <h1 className="text-3xl sm:text-4xl font-bold text-ink tracking-tight">
-          Encuentra tu cuarto ideal
+          Tu próximo cuarto te espera
         </h1>
-        <p className="text-muted text-base max-w-md mx-auto">
-          Habitaciones en Venezuela con contacto directo por WhatsApp.
-          Sin intermediarios.
+        <p className="text-muted text-base sm:text-lg max-w-lg mx-auto">
+          Habitaciones verificadas en toda Venezuela.
+          Contacto directo por WhatsApp — sin intermediarios, sin comisiones.
         </p>
+        <div className="flex items-center justify-center gap-6 pt-2 text-sm text-muted">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-whatsapp"></span>
+            Contacto directo
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-primary"></span>
+            {rooms.length}+ habitaciones
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-primary-light"></span>
+            {cities.length} ciudades
+          </span>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -108,7 +124,7 @@ export default function Home() {
               : "text-ink/50 hover:text-ink/70"
           }`}
         >
-          Buscan cuarto
+          Personas buscando
         </button>
       </div>
 
@@ -144,6 +160,20 @@ export default function Home() {
             setFilters((prev) => ({ ...prev, [key]: value }))
           }
         />
+      )}
+
+      {/* Map toggle + Map */}
+      {tab === "habitaciones" && (
+        <div className="space-y-3">
+          <button
+            onClick={() => setShowMap(!showMap)}
+            className="flex items-center gap-2 text-sm text-primary font-medium hover:text-primary-dark transition-colors"
+          >
+            <MapPin size={16} />
+            {showMap ? "Ocultar mapa" : "Ver mapa de habitaciones"}
+          </button>
+          {showMap && <RoomMap rooms={filteredRooms} />}
+        </div>
       )}
 
       {/* CTAs */}
@@ -203,7 +233,7 @@ export default function Home() {
         <div className="space-y-4">
           <p className="text-sm text-muted">
             {filteredSeekers.length} persona{filteredSeekers.length !== 1 && "s"}{" "}
-            buscando cuarto
+            buscando
           </p>
           <div className="grid gap-4 sm:grid-cols-2">
             {filteredSeekers.map((seeker) => (
