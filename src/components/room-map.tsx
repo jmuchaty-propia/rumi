@@ -40,7 +40,7 @@ export function RoomMap({ rooms }: RoomMapProps) {
     const icon = L.divIcon({
       className: "rumi-marker",
       html: `<div style="
-        background: #0284C7;
+        background: #7C3AED;
         width: 32px;
         height: 32px;
         border-radius: 50% 50% 50% 0;
@@ -67,9 +67,9 @@ export function RoomMap({ rooms }: RoomMapProps) {
 
       marker.bindPopup(`
         <div style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif; min-width: 200px;">
-          <strong style="font-size: 14px; color: #0F172A;">${room.title}</strong>
+          <strong style="font-size: 14px; color: #1C1530;">${room.title}</strong>
           <p style="color: #64748B; font-size: 12px; margin: 4px 0;">${room.location_zone}, ${room.location_city}</p>
-          <p style="color: #0284C7; font-weight: 700; font-size: 16px; margin: 4px 0;">$${room.price}/mes</p>
+          <p style="color: #7C3AED; font-weight: 700; font-size: 16px; margin: 4px 0;">$${room.price}/mes</p>
           <a href="${whatsappUrl}" target="_blank" rel="noopener noreferrer"
              style="display: block; text-align: center; background: #25D366; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; margin-top: 8px;">
             💬 WhatsApp
