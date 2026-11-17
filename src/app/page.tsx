@@ -7,7 +7,8 @@ import { SeekerCard } from "@/components/seeker-card";
 import { FilterBar } from "@/components/filter-bar";
 import { getRooms, getSeekers } from "@/lib/queries";
 import { Room, SeekerProfile, Tab } from "@/lib/types";
-import { Search, Plus, UserPlus, MapPin } from "lucide-react";
+import { Search, Plus, UserPlus, MapPin, Camera, MessageCircle } from "lucide-react";
+import { SafeImg } from "@/components/ui";
 import { RoomMap } from "@/components/room-map";
 
 export default function Home() {
@@ -42,6 +43,7 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
 
+  const heroRooms = rooms.filter((r) => r.photos.length > 0).slice(0, 3);
   const cities = Array.from(new Set(rooms.map((r) => r.location_city)));
 
   const filteredRooms = rooms.filter((room) => {
@@ -80,28 +82,73 @@ export default function Home() {
   return (
     <div className="max-w-content mx-auto px-4 py-6 space-y-6">
       {/* Hero */}
-      <div className="text-center space-y-3 py-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-ink tracking-tight">
-          Tu próximo cuarto te espera
-        </h1>
-        <p className="text-muted text-base sm:text-lg max-w-lg mx-auto">
-          Habitaciones verificadas en toda Venezuela.
-          Contacto directo por WhatsApp — sin intermediarios, sin comisiones.
-        </p>
-        <div className="flex items-center justify-center gap-6 pt-2 text-sm text-muted">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-whatsapp"></span>
-            Contacto directo
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-primary"></span>
-            {rooms.length}+ habitaciones
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-primary-light"></span>
-            {cities.length} ciudades
-          </span>
+      <div className="grid gap-6 sm:grid-cols-2 sm:items-center pt-2 sm:py-8">
+        <div className="space-y-4 text-center sm:text-left">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight leading-tight">
+            Alquila una habitación,{" "}
+            <span className="text-primary">no un apartamento entero</span>
+          </h1>
+          <p className="text-muted text-base sm:text-lg">
+            Habitaciones con fotos reales, condiciones claras y contacto directo
+            por WhatsApp. Sin intermediarios.
+          </p>
+          <div className="flex gap-2 justify-center sm:justify-start">
+            <Link
+              href="/busco"
+              className="px-4 py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-lg transition-colors"
+            >
+              Busco habitación
+            </Link>
+            <Link
+              href="/publicar"
+              className="px-4 py-2.5 border border-primary/30 text-primary text-sm font-semibold rounded-lg hover:bg-rumi-soft transition-colors"
+            >
+              Publicar gratis
+            </Link>
+          </div>
         </div>
+
+        {/* Collage con fotos reales de los anuncios */}
+        <div className="grid grid-cols-3 grid-rows-2 gap-2 h-48 sm:h-72">
+          {[0, 1, 2].map((i) => {
+            const r = heroRooms[i];
+            return (
+              <Link
+                key={i}
+                href={r ? `/habitacion/${r.id}` : "/publicar"}
+                className={`relative overflow-hidden rounded-xl ${
+                  i === 0 ? "col-span-2 row-span-2" : ""
+                }`}
+              >
+                <SafeImg
+                  src={r?.photos[0]}
+                  alt={r?.title ?? "Habitación"}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                />
+                {r && (
+                  <span className="absolute bottom-1.5 left-1.5 text-[11px] font-semibold bg-white/95 text-ink px-2 py-0.5 rounded-md">
+                    ${r.price} · {r.location_zone}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Cómo funciona */}
+      <div className="grid grid-cols-3 gap-2 text-center">
+        {[
+          { icon: Camera, t: "Fotos reales", d: "De la habitación y la casa" },
+          { icon: MapPin, t: "Zona en el mapa", d: "Sabes dónde queda" },
+          { icon: MessageCircle, t: "WhatsApp directo", d: "Hablas con el dueño" },
+        ].map(({ icon: Icon, t, d }) => (
+          <div key={t} className="bg-rumi-soft rounded-xl px-2 py-3">
+            <Icon size={20} className="text-primary mx-auto" />
+            <p className="text-xs sm:text-sm font-semibold text-ink mt-1">{t}</p>
+            <p className="text-[11px] sm:text-xs text-muted">{d}</p>
+          </div>
+        ))}
       </div>
 
       {/* Tabs */}

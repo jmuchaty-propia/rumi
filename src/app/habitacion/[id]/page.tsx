@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { getRoomById } from "@/lib/queries";
 import { Room } from "@/lib/types";
 import { useParams } from "next/navigation";
+import { PhotoGallery } from "@/components/photo-gallery";
+import { RoomLocationMap } from "@/components/room-location-map";
+import { WhatsAppIcon } from "@/components/ui";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -13,8 +16,8 @@ import {
   Snowflake,
   Bitcoin,
   ShieldCheck,
-  Home,
   MapPin,
+  Lock,
   Calendar,
 } from "lucide-react";
 
@@ -48,7 +51,7 @@ export default function RoomDetailPage() {
     );
   }
 
-  const whatsappUrl = `https://wa.me/${room.phone.replace(/\+/g, "")}?text=${encodeURIComponent(
+  const whatsappUrl = `https://wa.me/${room.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
     `Hola, vi tu habitación "${room.title}" en Rumi y me interesa. ¿Está disponible?`
   )}`;
 
@@ -70,22 +73,11 @@ export default function RoomDetailPage() {
         Volver
       </Link>
 
-      {room.photos.length > 0 ? (
-        <div className="space-y-2">
-          {room.photos.map((url) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={url}
-              src={url}
-              alt={room.title}
-              className="w-full aspect-[16/10] object-cover rounded-xl"
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="aspect-[16/10] bg-gradient-to-br from-primary-light/30 to-primary-light/10 rounded-xl flex items-center justify-center">
-          <Home size={48} className="text-primary/20" />
-        </div>
+      <PhotoGallery photos={room.photos} alt={room.title} />
+      {room.is_demo && (
+        <p className="text-xs text-center text-muted bg-gray-50 rounded-lg py-2">
+          Este es un anuncio de ejemplo para mostrar cómo se ve Rumi.
+        </p>
       )}
 
       {/* Header */}
@@ -174,20 +166,63 @@ export default function RoomDetailPage() {
         </div>
       </div>
 
+      {/* La casa */}
+      {room.home_photos?.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-ink mb-2">La casa</h2>
+          <div className="flex gap-2 overflow-x-auto snap-x no-scrollbar -mx-4 px-4">
+            {room.home_photos.map((url, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={url + i}
+                src={url}
+                alt={`Áreas comunes — foto ${i + 1}`}
+                loading="lazy"
+                className="w-64 shrink-0 snap-start aspect-[4/3] object-cover rounded-lg"
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Ubicación */}
+      {room.latitude != null && room.longitude != null && (
+        <div>
+          <h2 className="text-sm font-semibold text-ink mb-2">Ubicación</h2>
+          <RoomLocationMap
+            lat={room.latitude}
+            lng={room.longitude}
+            exact={room.location_exact}
+          />
+          {!room.location_exact && (
+            <p className="text-xs text-muted mt-1.5 inline-flex items-center gap-1">
+              <Lock size={12} />
+              Ubicación aproximada. La dirección exacta te la da el dueño por WhatsApp.
+            </p>
+          )}
+        </div>
+      )}
+
       {/* WhatsApp CTA — sticky on mobile */}
-      <div className="sticky bottom-4 pt-2">
-        <a
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full py-3 bg-whatsapp hover:bg-whatsapp/90 text-white font-medium rounded-xl shadow-lg transition-colors"
-        >
-          <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-            <path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.638l4.67-1.388A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.239 0-4.308-.724-5.994-1.952a.5.5 0 00-.404-.078l-3.29.978.892-3.156a.5.5 0 00-.062-.425A9.956 9.956 0 012 12C2 6.486 6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z" />
-          </svg>
-          Contactar por WhatsApp
-        </a>
+      <div className="sticky bottom-4 pt-2 z-10">
+        {room.is_demo ? (
+          <Link
+            href="/publicar"
+            className="flex items-center justify-center gap-2 w-full py-3 bg-primary hover:bg-primary-dark text-white font-medium rounded-xl shadow-lg transition-colors"
+          >
+            Publica tu habitación así de fácil
+          </Link>
+        ) : (
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-3 bg-whatsapp hover:bg-whatsapp/90 text-white font-medium rounded-xl shadow-lg transition-colors"
+          >
+            <WhatsAppIcon className="w-5 h-5" />
+            Contactar por WhatsApp
+          </a>
+        )}
       </div>
     </div>
   );
