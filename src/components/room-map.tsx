@@ -61,16 +61,11 @@ export function RoomMap({ rooms }: RoomMapProps) {
     roomsWithCoords.forEach((room) => {
       const marker = L.marker([room.latitude!, room.longitude!], { icon }).addTo(map);
 
-      const whatsappUrl = `https://wa.me/${room.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
-        `Hola, vi tu habitación "${room.title}" en Rumi y me interesa. ¿Está disponible?`
-      )}`;
 
       const photo = room.photos[0]
         ? `<img src="${room.photos[0]}" alt="" style="width:100%;height:100px;object-fit:cover;border-radius:6px;margin-bottom:6px" />`
         : "";
-      const cta = room.is_demo
-        ? `<a href="/habitacion/${room.id}" style="display:block;text-align:center;background:#7C3AED;color:white;padding:6px 12px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;margin-top:8px;">Ver anuncio</a>`
-        : `<a href="${whatsappUrl}" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;background:#25D366;color:white;padding:6px 12px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;margin-top:8px;">💬 WhatsApp</a>`;
+      const cta = `<a href="/habitacion/${room.id}" style="display:block;text-align:center;background:#7C3AED;color:white;padding:6px 12px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;margin-top:8px;">Ver anuncio</a>`;
 
       marker.bindPopup(`
         <div style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif; min-width: 200px;">

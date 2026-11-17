@@ -6,7 +6,7 @@ import { Room } from "@/lib/types";
 import { useParams } from "next/navigation";
 import { PhotoGallery } from "@/components/photo-gallery";
 import { RoomLocationMap } from "@/components/room-location-map";
-import { WhatsAppIcon } from "@/components/ui";
+import { RoomConditions } from "@/components/conditions";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -19,6 +19,7 @@ import {
   MapPin,
   Lock,
   Calendar,
+  Send,
 } from "lucide-react";
 
 export default function RoomDetailPage() {
@@ -51,9 +52,6 @@ export default function RoomDetailPage() {
     );
   }
 
-  const whatsappUrl = `https://wa.me/${room.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
-    `Hola, vi tu habitación "${room.title}" en Rumi y me interesa. ¿Está disponible?`
-  )}`;
 
   const services = [
     { icon: Zap, label: "Planta eléctrica", active: room.has_planta },
@@ -130,13 +128,6 @@ export default function RoomDetailPage() {
               Servicios incluidos
             </span>
           )}
-          {room.gender_pref !== "cualquiera" && (
-            <span className="text-xs px-2.5 py-1 rounded-md bg-gray-100 text-ink/60">
-              {room.gender_pref === "solo_mujeres"
-                ? "Solo mujeres"
-                : "Solo hombres"}
-            </span>
-          )}
         </div>
       </div>
 
@@ -144,6 +135,12 @@ export default function RoomDetailPage() {
       <div>
         <h2 className="text-sm font-semibold text-ink mb-1.5">Descripción</h2>
         <p className="text-sm text-ink/70 leading-relaxed">{room.description}</p>
+      </div>
+
+      {/* Condiciones */}
+      <div>
+        <h2 className="text-sm font-semibold text-ink mb-2">Condiciones</h2>
+        <RoomConditions room={room} />
       </div>
 
       {/* Services */}
@@ -205,24 +202,16 @@ export default function RoomDetailPage() {
 
       {/* WhatsApp CTA — sticky on mobile */}
       <div className="sticky bottom-4 pt-2 z-10">
-        {room.is_demo ? (
-          <Link
-            href="/publicar"
-            className="flex items-center justify-center gap-2 w-full py-3 bg-primary hover:bg-primary-dark text-white font-medium rounded-xl shadow-lg transition-colors"
-          >
-            Publica tu habitación así de fácil
-          </Link>
-        ) : (
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3 bg-whatsapp hover:bg-whatsapp/90 text-white font-medium rounded-xl shadow-lg transition-colors"
-          >
-            <WhatsAppIcon className="w-5 h-5" />
-            Contactar por WhatsApp
-          </a>
-        )}
+        <Link
+          href={`/habitacion/${room.id}/postular`}
+          className="flex items-center justify-center gap-2 w-full py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-xl shadow-lg transition-colors"
+        >
+          <Send size={18} />
+          {room.is_demo ? "Ver cómo es postularse" : "Postularme"}
+        </Link>
+        <p className="text-center text-xs text-muted mt-1.5 bg-surface/90 rounded">
+          El dueño ve tu perfil y te escribe por WhatsApp si le interesa.
+        </p>
       </div>
     </div>
   );

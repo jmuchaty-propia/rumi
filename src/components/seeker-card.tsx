@@ -1,12 +1,10 @@
-import { OCCUPATION_LABELS, SeekerProfile, displayName } from "@/lib/types";
-import { ShieldCheck, MapPin, User, Briefcase, GraduationCap } from "lucide-react";
-import { SafeImg, WhatsAppIcon } from "./ui";
+import { OCCUPATION_LABELS, SeekerProfile, displayName, stayLabel } from "@/lib/types";
+import { ShieldCheck, MapPin, User, Briefcase, GraduationCap, Mail } from "lucide-react";
+import { SafeImg } from "./ui";
+import Link from "next/link";
 
 export function SeekerCard({ seeker }: { seeker: SeekerProfile }) {
   const name = displayName(seeker);
-  const whatsappUrl = `https://wa.me/${seeker.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
-    `Hola ${seeker.name}, vi tu perfil en Rumi buscando habitación. Tengo algo que podría interesarte.`
-  )}`;
   const budget =
     seeker.budget_min === seeker.budget_max
       ? `~$${seeker.budget_max}/mes`
@@ -61,20 +59,29 @@ export function SeekerCard({ seeker }: { seeker: SeekerProfile }) {
         ))}
       </div>
 
+      <div className="flex flex-wrap gap-1.5">
+        {seeker.smoker === false && (
+          <span className="text-xs text-ink/70 bg-gray-100 px-2 py-0.5 rounded">🚭 No fuma</span>
+        )}
+        {seeker.stay_months && (
+          <span className="text-xs text-ink/70 bg-gray-100 px-2 py-0.5 rounded">
+            📅 {stayLabel(seeker.stay_months)}
+          </span>
+        )}
+      </div>
+
       {seeker.is_demo ? (
         <div className="w-full py-2.5 text-center text-xs font-medium text-muted bg-gray-50 rounded-lg">
           Perfil de ejemplo
         </div>
       ) : (
-        <a
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full py-2.5 bg-whatsapp hover:bg-whatsapp/90 text-white text-sm font-medium rounded-lg transition-colors"
+        <Link
+          href={`/persona/${seeker.id}/invitar`}
+          className="flex items-center justify-center gap-2 w-full py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-lg transition-colors"
         >
-          <WhatsAppIcon />
-          Ofrecer habitación
-        </a>
+          <Mail size={16} />
+          Invitar a ver mi habitación
+        </Link>
       )}
     </div>
   );

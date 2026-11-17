@@ -89,8 +89,8 @@ export default function Home() {
             <span className="text-primary">no un apartamento entero</span>
           </h1>
           <p className="text-muted text-base sm:text-lg">
-            Habitaciones con fotos reales, condiciones claras y contacto directo
-            por WhatsApp. Sin intermediarios.
+            Habitaciones con fotos reales y condiciones claras. Te postulas con tu
+            perfil y el dueño te escribe por WhatsApp. Sin intermediarios.
           </p>
           <div className="flex gap-2 justify-center sm:justify-start">
             <Link
@@ -141,7 +141,7 @@ export default function Home() {
         {[
           { icon: Camera, t: "Fotos reales", d: "De la habitación y la casa" },
           { icon: MapPin, t: "Zona en el mapa", d: "Sabes dónde queda" },
-          { icon: MessageCircle, t: "WhatsApp directo", d: "Hablas con el dueño" },
+          { icon: MessageCircle, t: "Contacto privado", d: "Tu número no es público" },
         ].map(({ icon: Icon, t, d }) => (
           <div key={t} className="bg-rumi-soft rounded-xl px-2 py-3">
             <Icon size={20} className="text-primary mx-auto" />

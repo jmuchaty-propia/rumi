@@ -35,6 +35,12 @@ export function Navbar() {
             Personas buscando
           </Link>
           <Link
+            href="/panel"
+            className="text-sm text-ink/70 hover:text-ink transition-colors"
+          >
+            Mi panel
+          </Link>
+          <Link
             href="/publicar"
             className="text-sm font-medium text-white bg-primary hover:bg-primary-dark px-4 py-2 rounded-lg transition-colors"
           >
@@ -82,6 +88,13 @@ export function Navbar() {
             onClick={() => setOpen(false)}
           >
             Busco cuarto
+          </Link>
+          <Link
+            href="/panel"
+            className="block py-2 text-sm text-ink/70"
+            onClick={() => setOpen(false)}
+          >
+            Mi panel (postulaciones)
           </Link>
         </div>
       )}

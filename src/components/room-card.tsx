@@ -1,7 +1,9 @@
 import { Room } from "@/lib/types";
 import { Zap, Droplets, Wifi, Snowflake, Bitcoin, ShieldCheck, Camera, MapPin } from "lucide-react";
 import Link from "next/link";
-import { SafeImg, WhatsAppIcon } from "./ui";
+import { SafeImg } from "./ui";
+import { ConditionTags } from "./conditions";
+import { moveInCost } from "@/lib/types";
 
 function ServiceTag({
   icon: Icon,
@@ -22,9 +24,6 @@ function ServiceTag({
 }
 
 export function RoomCard({ room }: { room: Room }) {
-  const whatsappUrl = `https://wa.me/${room.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
-    `Hola, vi tu habitación "${room.title}" en Rumi y me interesa. ¿Está disponible?`
-  )}`;
   const allPhotos = [...room.photos, ...(room.home_photos ?? [])];
 
   return (
@@ -88,24 +87,19 @@ export function RoomCard({ room }: { room: Room }) {
           <ServiceTag icon={Bitcoin} label="Crypto" active={room.accepts_crypto} />
         </div>
 
-        {room.is_demo ? (
+        <ConditionTags room={room} />
+
+        <div className="flex items-center justify-between gap-2 pt-1">
+          <p className="text-xs text-muted">
+            Para mudarte: <span className="font-semibold text-ink">${moveInCost(room)}</span>
+          </p>
           <Link
             href={`/habitacion/${room.id}`}
-            className="flex items-center justify-center w-full py-2.5 border border-gray-200 text-ink/70 text-sm font-medium rounded-lg hover:border-gray-300 transition-colors"
+            className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-lg transition-colors"
           >
-            Ver anuncio de ejemplo
+            Ver y postularme
           </Link>
-        ) : (
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-2.5 bg-whatsapp hover:bg-whatsapp/90 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            <WhatsAppIcon />
-            Contactar por WhatsApp
-          </a>
-        )}
+        </div>
       </div>
     </div>
   );

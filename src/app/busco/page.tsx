@@ -1,73 +1,39 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Camera, Check, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { createSeeker, uploadPhoto } from "@/lib/queries";
+import { CITIES, Gender, OccupationType } from "@/lib/types";
 import {
-  CITIES,
-  GENDER_LABELS,
-  Gender,
-  OCCUPATION_LABELS,
-  OccupationType,
-} from "@/lib/types";
-
-function Chips<T extends string>({
-  options,
-  value,
-  onChange,
-}: {
-  options: Record<T, string>;
-  value: T | "";
-  onChange: (v: T) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2 mt-1">
-      {(Object.keys(options) as T[]).map((k) => (
-        <button
-          key={k}
-          type="button"
-          onClick={() => onChange(k)}
-          className={`px-3 py-2 rounded-lg border text-sm transition-colors ${
-            value === k
-              ? "bg-primary/5 border-primary/40 text-primary font-medium"
-              : "border-gray-200 text-ink/60 hover:border-gray-300"
-          }`}
-        >
-          {options[k]}
-        </button>
-      ))}
-    </div>
-  );
-}
+  AvatarPicker,
+  PrivateLinkCard,
+  ProfileFields,
+  ProfileState,
+  emptyProfile,
+  inputCls,
+  missingProfileChoice,
+} from "@/components/form-bits";
+import { getMyProfile, panelUrl, saveMyProfile, savePanel } from "@/lib/local";
 
 export default function BuscoPage() {
-  const [submitted, setSubmitted] = useState(false);
+  const [panelLink, setPanelLink] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [avatar, setAvatar] = useState<File | null>(null);
-  const [gender, setGender] = useState<Gender | "">("");
-  const [occType, setOccType] = useState<OccupationType | "">("");
+  const [profile, setProfile] = useState<ProfileState>(emptyProfile);
   const [form, setForm] = useState({
-    name: "",
-    last_name: "",
-    age: "",
-    occupation: "",
     budget: "",
     preferred_city: "",
     preferred_zones: "",
     bio: "",
-    phone: "",
   });
 
-  const avatarUrl = useMemo(() => (avatar ? URL.createObjectURL(avatar) : null), [avatar]);
-  useEffect(() => () => {
-    if (avatarUrl) URL.revokeObjectURL(avatarUrl);
-  }, [avatarUrl]);
-
-  const inputCls =
-    "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base sm:text-sm bg-white text-ink placeholder-muted/60 " +
-    "focus:outline-none focus:ring-2 focus:ring-primary/30 mt-1";
+  // Si ya se postuló antes, reusar sus datos
+  useEffect(() => {
+    const saved = getMyProfile();
+    setProfile((p) => ({ ...p, ...saved }));
+  }, []);
 
   function update(key: string, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -75,24 +41,28 @@ export default function BuscoPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!gender || !occType) {
-      setError("Selecciona tu género y si trabajas o estudias.");
+    const missing = missingProfileChoice(profile);
+    if (missing) {
+      setError(missing);
       return;
     }
     setSubmitting(true);
     setError("");
     try {
-      const avatar_url = avatar ? await uploadPhoto(avatar, "avatars") : null;
+      const avatar_url = avatar
+        ? await uploadPhoto(avatar, "avatars")
+        : getMyProfile().avatar_url ?? null;
       const budget = Number(form.budget);
-      await createSeeker({
-        name: form.name.trim(),
-        last_name: form.last_name.trim(),
-        age: Number(form.age),
-        gender,
-        occupation_type: occType,
-        occupation: form.occupation.trim() || null,
+      const token = await createSeeker({
+        name: profile.name.trim(),
+        last_name: profile.last_name.trim(),
+        age: Number(profile.age),
+        gender: profile.gender as Gender,
+        occupation_type: profile.occupation_type as OccupationType,
+        occupation: profile.occupation.trim() || null,
+        smoker: profile.smoker === "si",
+        stay_months: Number(profile.stay_months),
         bio: form.bio.trim(),
-        // Presupuesto aproximado: un solo número
         budget_min: budget,
         budget_max: budget,
         currency: "USD",
@@ -103,9 +73,11 @@ export default function BuscoPage() {
           .filter(Boolean),
         move_in_date: null,
         avatar_url,
-        phone: form.phone,
+        phone: profile.phone,
       });
-      setSubmitted(true);
+      saveMyProfile({ ...profile, avatar_url });
+      savePanel({ kind: "seeker", token, title: `Perfil de ${profile.name}` });
+      setPanelLink(panelUrl({ kind: "seeker", token }));
     } catch {
       setError("No se pudo crear tu perfil. Revisa tu conexión e intenta de nuevo.");
     } finally {
@@ -113,21 +85,14 @@ export default function BuscoPage() {
     }
   }
 
-  if (submitted) {
+  if (panelLink) {
     return (
-      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
-        <div className="w-14 h-14 bg-primary-light rounded-full flex items-center justify-center mx-auto">
-          <Check size={28} className="text-primary" />
-        </div>
-        <h1 className="text-xl font-bold text-ink">Perfil creado</h1>
-        <p className="text-muted text-sm">
-          Tu perfil es visible para dueños de habitaciones. Te contactarán por
-          WhatsApp si tienen algo para ti.
-        </p>
-        <Link href="/?tab=habitaciones" className="inline-block text-sm font-medium text-primary hover:underline">
-          Mientras tanto, ver habitaciones
-        </Link>
-      </div>
+      <PrivateLinkCard
+        url={panelLink}
+        phone={profile.phone}
+        title="¡Perfil creado!"
+        description="Los dueños podrán invitarte a ver su habitación. Tú decides a quién responder — tu WhatsApp no es público."
+      />
     );
   }
 
@@ -144,107 +109,17 @@ export default function BuscoPage() {
       <div>
         <h1 className="text-2xl font-bold text-ink">Busco habitación</h1>
         <p className="text-sm text-muted mt-1">
-          Crea tu perfil y deja que los dueños te encuentren y te escriban por WhatsApp.
+          Crea tu perfil y deja que los dueños te encuentren e inviten. Tu contacto es privado.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Foto de perfil */}
-        <div className="flex items-center gap-4">
-          <label className="relative w-20 h-20 rounded-full overflow-hidden bg-rumi-soft border-2 border-dashed border-primary/30 flex items-center justify-center cursor-pointer shrink-0">
-            {avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <User size={30} className="text-primary/40" />
-            )}
-            <span className="absolute bottom-0 inset-x-0 bg-primary/90 text-white flex justify-center py-0.5">
-              <Camera size={12} />
-            </span>
-            <input
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              onChange={(e) => setAvatar(e.target.files?.[0] ?? null)}
-            />
-          </label>
-          <div>
-            <p className="text-sm font-medium text-ink">Foto de perfil</p>
-            <p className="text-xs text-muted">
-              Los perfiles con foto reciben más respuestas. Que se vea tu cara.
-            </p>
-          </div>
-        </div>
+        <AvatarPicker file={avatar} existingUrl={getMyProfile().avatar_url} onChange={setAvatar} />
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-sm font-medium text-ink">Nombre</label>
-            <input
-              type="text"
-              required
-              autoComplete="given-name"
-              placeholder="María"
-              value={form.name}
-              onChange={(e) => update("name", e.target.value)}
-              className={inputCls}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-ink">Apellido</label>
-            <input
-              type="text"
-              required
-              autoComplete="family-name"
-              placeholder="González"
-              value={form.last_name}
-              onChange={(e) => update("last_name", e.target.value)}
-              className={inputCls}
-            />
-          </div>
-        </div>
-        <p className="text-xs text-muted -mt-3">
-          En tu perfil público solo se verá la inicial del apellido.
+        <ProfileFields value={profile} onChange={setProfile} showPhone={false} />
+        <p className="text-xs text-muted -mt-2">
+          En tu perfil público solo se verá tu nombre y la inicial del apellido.
         </p>
-
-        <div>
-          <label className="text-sm font-medium text-ink">Edad</label>
-          <input
-            type="number"
-            inputMode="numeric"
-            required
-            min={18}
-            max={99}
-            placeholder="24"
-            value={form.age}
-            onChange={(e) => update("age", e.target.value)}
-            className={inputCls + " max-w-[8rem]"}
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-medium text-ink">Género</label>
-          <Chips options={GENDER_LABELS} value={gender} onChange={setGender} />
-        </div>
-
-        <div>
-          <label className="text-sm font-medium text-ink">Ocupación</label>
-          <Chips options={OCCUPATION_LABELS} value={occType} onChange={setOccType} />
-          {occType && (
-            <input
-              type="text"
-              placeholder={
-                occType === "estudiante"
-                  ? "¿Qué y dónde estudias? (opcional)"
-                  : occType === "trabajador"
-                  ? "¿En qué trabajas? (opcional)"
-                  : "Cuéntanos (opcional)"
-              }
-              value={form.occupation}
-              onChange={(e) => update("occupation", e.target.value)}
-              className={inputCls + " mt-2"}
-            />
-          )}
-        </div>
 
         <div>
           <label className="text-sm font-medium text-ink">Presupuesto aproximado (USD/mes)</label>
@@ -291,7 +166,7 @@ export default function BuscoPage() {
           </label>
           <textarea
             rows={3}
-            placeholder="Horarios, si fumas, mascotas, cuándo te quieres mudar…"
+            placeholder="Horarios, mascotas, cuándo te quieres mudar…"
             value={form.bio}
             onChange={(e) => update("bio", e.target.value)}
             className={inputCls + " resize-none"}
@@ -304,11 +179,13 @@ export default function BuscoPage() {
             type="tel"
             required
             placeholder="+584141234567"
-            value={form.phone}
-            onChange={(e) => update("phone", e.target.value)}
+            value={profile.phone}
+            onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
             className={inputCls}
           />
-          <p className="text-xs text-muted mt-1">Así te escriben los dueños.</p>
+          <p className="text-xs text-muted mt-1">
+            🔒 No es público. Solo lo verán los dueños a quienes tú respondas o te postules.
+          </p>
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}

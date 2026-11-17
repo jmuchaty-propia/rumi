@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, Lock } from "lucide-react";
 import Link from "next/link";
 import { createRoom, uploadPhoto } from "@/lib/queries";
-import { CITIES } from "@/lib/types";
+import { CITIES, OccupationType, STAY_OPTIONS, moveInCost } from "@/lib/types";
+import { Chips, PrivateLinkCard } from "@/components/form-bits";
+import { panelUrl, savePanel } from "@/lib/local";
 import { PhotoPicker } from "@/components/photo-picker";
 import { LocationPicker, PickedLocation, approximate } from "@/components/location-picker";
 
@@ -24,8 +26,35 @@ function Section({ n, title, children }: { n: number; title: string; children: R
   );
 }
 
+function Stepper({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  const btn =
+    "w-9 h-9 rounded-lg border border-gray-200 text-lg text-ink/70 hover:border-primary/40 disabled:opacity-30";
+  return (
+    <div>
+      <label className="text-sm font-medium text-ink">{label}</label>
+      <div className="flex items-center gap-3 mt-1">
+        <button type="button" className={btn} disabled={value <= 0} onClick={() => onChange(value - 1)}>
+          −
+        </button>
+        <span className="w-6 text-center font-semibold text-ink">{value}</span>
+        <button type="button" className={btn} disabled={value >= 6} onClick={() => onChange(value + 1)}>
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function PublicarPage() {
-  const [submitted, setSubmitted] = useState(false);
+  const [panelLink, setPanelLink] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [progress, setProgress] = useState("");
   const [error, setError] = useState("");
@@ -49,6 +78,12 @@ export default function PublicarPage() {
     owner_direct: false,
     includes_services: false,
   });
+  // Condiciones
+  const [noSmokers, setNoSmokers] = useState(false);
+  const [occupations, setOccupations] = useState<OccupationType[]>([]);
+  const [minStay, setMinStay] = useState("0");
+  const [deposit, setDeposit] = useState(1);
+  const [advance, setAdvance] = useState(1);
 
   const inputCls =
     "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base sm:text-sm bg-white text-ink placeholder-muted/60 " +
@@ -88,7 +123,7 @@ export default function PublicarPage() {
         ? { lat: location.lat, lng: location.lng }
         : approximate(location.lat, location.lng);
 
-      await createRoom({
+      const token = await createRoom({
         ...form,
         price: Number(form.price),
         currency: "USD",
@@ -100,8 +135,14 @@ export default function PublicarPage() {
         latitude: coords.lat,
         longitude: coords.lng,
         location_exact: location.exact,
+        smoking_allowed: !noSmokers,
+        allowed_occupations: occupations,
+        min_stay_months: Number(minStay) || null,
+        deposit_months: deposit,
+        advance_months: advance,
       });
-      setSubmitted(true);
+      savePanel({ kind: "room", token, title: form.title });
+      setPanelLink(panelUrl({ kind: "room", token }));
     } catch {
       setError("No se pudo publicar. Revisa tu conexión e intenta de nuevo.");
     } finally {
@@ -110,21 +151,14 @@ export default function PublicarPage() {
     }
   }
 
-  if (submitted) {
+  if (panelLink) {
     return (
-      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
-        <div className="w-14 h-14 bg-primary-light rounded-full flex items-center justify-center mx-auto">
-          <Check size={28} className="text-primary" />
-        </div>
-        <h1 className="text-xl font-bold text-ink">Habitación publicada</h1>
-        <p className="text-muted text-sm">
-          Tu anuncio está activo. Las personas interesadas te contactarán
-          directamente por WhatsApp.
-        </p>
-        <Link href="/" className="inline-block text-sm font-medium text-primary hover:underline">
-          Ver mi anuncio en Rumi
-        </Link>
-      </div>
+      <PrivateLinkCard
+        url={panelLink}
+        phone={form.phone}
+        title="¡Habitación publicada!"
+        description="Las personas interesadas se postularán con su perfil. Tú decides a quién escribirle — tu WhatsApp no aparece en el anuncio."
+      />
     );
   }
 
@@ -141,7 +175,7 @@ export default function PublicarPage() {
       <div>
         <h1 className="text-2xl font-bold text-ink">Publicar habitación</h1>
         <p className="text-sm text-muted mt-1">
-          Gratis, en 3 minutos. Las personas te escriben directo por WhatsApp.
+          Gratis, en 3 minutos. Los interesados se postulan y tú eliges a quién escribirle.
         </p>
       </div>
 
@@ -218,18 +252,6 @@ export default function PublicarPage() {
             </div>
           </div>
 
-          <div>
-            <label className="text-sm font-medium text-ink">¿Para quién?</label>
-            <select
-              value={form.gender_pref}
-              onChange={(e) => update("gender_pref", e.target.value)}
-              className={inputCls}
-            >
-              <option value="cualquiera">Cualquiera</option>
-              <option value="solo_mujeres">Solo mujeres</option>
-              <option value="solo_hombres">Solo hombres</option>
-            </select>
-          </div>
 
           <div>
             <label className="text-sm font-medium text-ink mb-2 block">
@@ -310,8 +332,82 @@ export default function PublicarPage() {
           <LocationPicker city={form.location_city} value={location} onChange={setLocation} />
         </Section>
 
-        {/* 4. Contacto */}
-        <Section n={4} title="Contacto">
+        {/* 4. Condiciones */}
+        <Section n={4} title="Condiciones">
+          <p className="text-xs text-muted -mt-2">
+            Sirven de filtro: se muestran en el anuncio y verás si cada postulante las cumple.
+          </p>
+
+          <div>
+            <label className="text-sm font-medium text-ink">¿Para quién?</label>
+            <Chips
+              options={[
+                ["cualquiera", "Cualquiera"],
+                ["solo_mujeres", "Solo mujeres"],
+                ["solo_hombres", "Solo hombres"],
+              ]}
+              value={form.gender_pref}
+              onChange={(v) => update("gender_pref", v)}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-ink">Ocupación</label>
+            <Chips
+              options={[
+                ["estudiante", "Solo estudiantes"],
+                ["trabajador", "Solo trabajadores"],
+              ]}
+              value={occupations}
+              onChange={(v) =>
+                setOccupations((prev) => (prev.includes(v) ? [] : [v as OccupationType]))
+              }
+            />
+            <p className="text-xs text-muted mt-1">Sin seleccionar = cualquiera</p>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-ink">Fumadores</label>
+            <Chips
+              options={[
+                ["si", "Se permite fumar"],
+                ["no", "No fumadores"],
+              ]}
+              value={noSmokers ? "no" : "si"}
+              onChange={(v) => setNoSmokers(v === "no")}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-ink">Estancia mínima</label>
+            <Chips
+              options={[
+                ["0", "Sin mínimo"],
+                ...STAY_OPTIONS.filter((o) => o.v > 1).map(
+                  (o) => [String(o.v), o.label] as [string, string]
+                ),
+              ]}
+              value={minStay}
+              onChange={setMinStay}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Stepper label="Meses de depósito" value={deposit} onChange={setDeposit} />
+            <Stepper label="Meses adelantados" value={advance} onChange={setAdvance} />
+          </div>
+          {Number(form.price) > 0 && (
+            <p className="text-sm text-ink bg-rumi-soft rounded-lg px-3 py-2">
+              Para mudarse:{" "}
+              <span className="font-bold text-primary">
+                ${moveInCost({ price: Number(form.price), deposit_months: deposit, advance_months: advance })}
+              </span>
+            </p>
+          )}
+        </Section>
+
+        {/* 5. Contacto */}
+        <Section n={5} title="Contacto">
           <div>
             <label className="text-sm font-medium text-ink">WhatsApp (con código de país)</label>
             <input
@@ -322,6 +418,10 @@ export default function PublicarPage() {
               onChange={(e) => update("phone", e.target.value)}
               className={inputCls}
             />
+            <p className="text-xs text-muted mt-1 inline-flex items-center gap-1">
+              <Lock size={12} />
+              No se muestra en el anuncio. Te llega el link de tu panel aquí.
+            </p>
           </div>
         </Section>
 
